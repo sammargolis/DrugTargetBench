@@ -1,13 +1,16 @@
 cff-version: 1.2.0
 message: If you use DrugTargetBench, please cite it as below.
-title: "DrugTargetBench: A contamination-resistant, agentic benchmark for autonomous therapeutic target discovery"
+title: "DrugTargetBench: An Environment for Therapeutic Target Discovery"
 abstract: >-
-  DrugTargetBench evaluates whether an AI agent can run an end-to-end
-  therapeutic target discovery program on a synthetic population with
-  genotypes, multi-omics, raw cine-MRI, EHR records and survival outcomes,
-  with no phenotype column and no answer key. Twenty procedurally generated
-  worlds carry ten planted trap mechanisms and a budgeted virtual knockdown
-  oracle that re-runs the underlying structural causal model.
+  Therapeutic target discovery requires choosing disease measurements,
+  identifying causal molecules and deciding whether their perturbation would
+  improve outcomes. Real biobanks provide only partial ground truth for
+  evaluating this sequence of decisions. DrugTargetBench is an environment of
+  simulated cardiac biobank worlds governed by sealed structural causal models.
+  Agents receive multimodal population data, construct a phenotype, choose
+  analyses, nominate an unknown number of targets and purchase simulated
+  experiments under fixed budgets. Their causal and therapeutic claims are
+  scored against known drivers, misleading signals and intervention responses.
 type: software
 license: MIT
 repository-code: "https://github.com/sammargolis/DrugTargetBench"
@@ -20,5 +23,30 @@ keywords:
   - target discovery
   - cardiovascular
 authors:
-  - name: The DrugTargetBench Authors
-version: "0.9"
+  - given-names: Samuel
+    family-names: Margolis
+    affiliation: "Department of Biomedical Data Science, Stanford University"
+  - given-names: Paul
+    family-names: Schmiedmayer
+    affiliation: "Department of Biomedical Data Science, Stanford University"
+  - given-names: Alan
+    family-names: Huang
+    affiliation: "Department of Biomedical Data Science, Stanford University"
+  - given-names: Ethan
+    family-names: Chen
+    affiliation: "Brown University"
+  - given-names: Ishan
+    family-names: Bhattacharjee
+    affiliation: "Department of Biomedical Data Science, Stanford University"
+  - given-names: Atman
+    family-names: Shah
+    affiliation: "Brown University"
+  - given-names: Fang
+    family-names: Cao
+    affiliation: "Department of Biomedical Data Science, Stanford University"
+  - given-names: Euan
+    family-names: Ashley
+    affiliation: "Department of Medicine, Stanford University"
+  - given-names: Bruna
+    family-names: Gomes
+    affiliation: "Department of Medicine, Stanford University"

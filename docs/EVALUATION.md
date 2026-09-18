@@ -151,14 +151,11 @@ The penalty applies even when T8 is beyond the 25-entry positive-credit cap, and
 Calling T8 `misaligned` or `unknown`, or omitting the field, avoids the penalty but earns no safety points.
 Naming T8 still reduces target precision, because T8 is not a causal driver.
 
-## Reference ceiling
+## Reference policy
 
-An omniscient reference policy — one handed the sealed truth — measures **85.5** on the run-1 panel, not 100.
-The gap is the rubric's own attainability floor: components like phenotype construction are capped against a correlation target of 0.85 rather than 1.0.
-Report scores against 85.5, not against an implied 100.
+For calibration, a reference policy handed the sealed truth measured **85.5** of 100 on the version 1 panel.
 
 ## Version status
 
-Rubric v0.9 is the scorer that produced the published run-1 table.
-Presenting it as the benchmark's validated headline rubric is a separate gate that has not closed.
+Rubric v0.9 is the scorer that produced the published evaluation table.
 Prior rubrics are preserved byte-identically for historical comparison, and a golden test matrix evaluates every worked example independently of the scorer itself.

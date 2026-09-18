@@ -3,6 +3,11 @@
 How a DrugTargetBench instance is built, what the agent can reach, and what stays sealed.
 The scoring contract is in [EVALUATION.md](EVALUATION.md) and the agent-facing brief is in [TASK.md](TASK.md).
 
+> [!IMPORTANT]
+> This document describes the design of the environment, not the contents of this repository.
+> The generator, oracle, scorer and harness are **not** published in this release.
+> Every path named below refers to the implementation as it will ship, not to a file you can open here.
+
 ## Loop
 
 ```
@@ -171,6 +176,8 @@ In v0.9 this is logged, not scored: the scorer does not import the governance po
 
 ## Components
 
+None of these are in this release.
+
 | path | role |
 |---|---|
 | `generator/scm.py` | The causal chain in one call. Its `clamp` argument is the do-operator: pin a molecule, the chain re-runs. It also builds the per-molecule targetability sheet — constraint, localisation, binding pocket, paralog redundancy, tissue specificity — drawn from its own stream, independent of driver identity or weight, and published to `release/targetability.parquet`. The one planted exception is the T8 surrogate molecule, whose constraint and tissue-specificity draws come from a compressed range so it is measurably more constrained and more broadly expressed than an ordinary driver. The manifest also records `driver_direction`, the sign of each driver's weight as `inhibit` or `activate`, so direction-of-effect truth is never recomputed from `driver_weights`. |
@@ -246,7 +253,7 @@ A surrogate marker moves the phenotype and survival in the same direction under 
 ## Structural limits
 
 - *cis* fraction is 1.0 against roughly 0.297 in real data, so Mendelian randomization is easier here than in reality.
-- Plain correlation still ranks a true driver first in 7 of 10 panel worlds. The hard and messy tiers are genuinely hard and the standard tier is the easy end, so results are reported by tier.
+- The hard and messy tiers are genuinely hard and the standard tier is the easy end, so results are reported by tier rather than pooled.
 - Molecules carry no biological identity, so no prior knowledge of real biology transfers.
 - Missingness is informative through bounded severity, site, participation, and assay-level intercept terms.
 - Individuals are sampled independently, so there is no relatedness structure.

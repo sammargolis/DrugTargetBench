@@ -2,45 +2,76 @@
 
 # DrugTargetBench
 
-### A contamination-resistant, agentic benchmark for autonomous therapeutic target discovery
-
-*Twenty sealed causal worlds. Raw multi-omics and cine-MRI in, ranked drug targets out.*
+### An Environment for Therapeutic Target Discovery
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/downloads/)
-[![arXiv](https://img.shields.io/badge/arXiv-XXXX.XXXXX-b31b1b.svg)](#citation)
-[![HuggingFace](https://img.shields.io/badge/%F0%9F%A4%97%20HuggingFace-pending-orange)](#data)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
+[![arXiv](https://img.shields.io/badge/arXiv-pending-b31b1b.svg)](#citation)
+[![Hugging Face](https://img.shields.io/badge/%F0%9F%A4%97%20dataset-pending-orange)](#data-and-code-availability)
 [![Website](https://img.shields.io/badge/site-drugtargetbench.vercel.app-111111.svg)](https://drugtargetbench.vercel.app)
 
-<br>
+Samuel Margolis<sup>1,2</sup>, Paul Schmiedmayer<sup>1</sup>, Alan Huang<sup>1,2</sup>, Ethan Chen<sup>3</sup>, Ishan Bhattacharjee<sup>1</sup>, Atman Shah<sup>3</sup>, Fang Cao<sup>1,2</sup>, Euan Ashley<sup>1,2</sup>, Bruna Gomes<sup>†1,2</sup>
 
-<img src="docs/figures/fig1_disease_states.png" alt="Paired control and diseased cine-MRI across four cardiac archetypes" width="820">
+<sub>
+<sup>1</sup>Department of Biomedical Data Science, Stanford University, Stanford, CA 94305, USA<br>
+<sup>2</sup>Department of Medicine, Stanford University, Stanford, CA 94305, USA<br>
+<sup>3</sup>Brown University, Providence, RI 02912, USA<br>
+<sup>†</sup>Corresponding author: Bruna Gomes.
+</sub>
 
-<sub>Four archetypes, control against diseased. Each pair shares one base anatomy and one noise stream, so only the hidden latent severity differs.</sub>
+<br><br>
+
+| | |
+|:--:|:--:|
+| <img src="docs/figures/hfpef.gif" alt="HFpEF control and diseased cine-MRI" width="380"> | <img src="docs/figures/dcm.gif" alt="DCM control and diseased cine-MRI" width="380"> |
+| <img src="docs/figures/hcm.gif" alt="HCM control and diseased cine-MRI" width="380"> | <img src="docs/figures/ischemic.gif" alt="Ischemic control and diseased cine-MRI" width="380"> |
+
+<sub>Rendered cine-MRI from four cardiac archetypes, control against diseased. Within each pair both loops share one base anatomy and one noise stream, so the only difference is the hidden latent severity. Control is drawn from the 4th percentile of the sealed latent and diseased from the 97th.</sub>
 
 </div>
 
 ---
 
-**DrugTargetBench** measures whether an AI agent can run an entire target-discovery program without being told what the disease is.
-Each instance is a procedurally generated population of up to 54,000 subjects with genotypes, 2,941 plasma proteins, matched transcripts, 150 metabolites, ICD-10 and ATC records, ECG, coronary CT, raw short-axis cine-MRI of real cardiac anatomy, a five-year second visit, and 12-year survival.
-There is no phenotype column and no answer key.
-The agent must derive a cardiac phenotype from pixels, screen 2,941 molecules for causal drivers against 8,192 genetic variants, spend a hard budget of 5 virtual knockdown experiments on the questions observational data cannot settle, and submit a ranked target list with a therapeutic direction for each.
-Ten planted trap mechanisms make naive correlation and blanket skepticism both fail.
+## Abstract
 
-In run 1 — 9 models × 20 worlds × 3 budget regimes, 540 episodes, rubric v0.9 — the best agent scored **39.98 of a measured 85.5 ceiling**, and 416 of 540 episodes earned zero phenotype-construction credit.
+Therapeutic target discovery requires choosing disease measurements, identifying causal molecules and deciding whether their perturbation would improve outcomes.
+Real biobanks provide only partial ground truth for evaluating this sequence of decisions.
+We introduce DrugTargetBench, an environment of simulated cardiac biobank worlds governed by sealed structural causal models.
+Agents receive multimodal population data, construct a phenotype, choose analyses, nominate an unknown number of targets and purchase simulated experiments under fixed budgets.
+Their causal and therapeutic claims are scored against known drivers, misleading signals and intervention responses.
+In an initial evaluation of nine language-model agents across the frozen version 1 panel of 20 worlds and three budgets (540 episodes; one run per condition), six episodes (1.1%) exceeded 80 of 100 points and recovered the complete planted target set, all in two worlds.
+Phenotype construction earned no credit in 77.0% of episodes.
+Agents purchased experiments in 143 of 360 eligible episodes; subsequent code contained no detected reference to returned results in 41 purchasing episodes.
+Source-linked traces distinguished candidate selection from therapeutic justification: some submissions incorporated perturbation effects, whereas others hard-coded outcome-benefit labels despite exact target recovery.
+These initial results identify concrete targets for improvement: producing usable phenotypes, selecting informative experiments and connecting their results to final claims.
+DrugTargetBench makes these linked research decisions testable against hidden causal and interventional truth, providing an environment for controlled workflow comparisons and future agent training.
 
 ---
 
-## News
+## What this repository contains
 
-- **2026-XX-XX**: Benchmark, panel, and run-1 results released. Hugging Face dataset and paper links pending.
+> [!IMPORTANT]
+> **This release is documentation only.**
+> The generator, oracle, scorer and harness are **not** published here.
+> Neither is the world panel, the episode data, or the run-1 traces.
+> Nothing in this repository can be executed, and none of the commands shown below will run yet.
+
+| | in this release |
+|---|---|
+| README, architecture, task statement, scoring contract | yes |
+| Rendered cine-MRI figures | yes |
+| Generator, oracle, scorer, harness | no |
+| World panel and world data | no |
+| Episode table and agent traces | no |
+| `training/`, `testing/` | present but empty |
+
+See [Data and code availability](#data-and-code-availability) for what is planned and where it will land.
 
 ---
 
 ## Table of Contents
 
-- [Why a synthetic benchmark](#why-a-synthetic-benchmark)
+- [Why a simulated environment](#why-a-simulated-environment)
 - [Architecture](#architecture)
 - [The world, layer by layer](#the-world-layer-by-layer)
 - [Intervention](#intervention)
@@ -48,28 +79,27 @@ In run 1 — 9 models × 20 worlds × 3 budget regimes, 540 episodes, rubric v0.
 - [The ten traps](#the-ten-traps)
 - [The task](#the-task)
 - [Scoring](#scoring)
-- [Run-1 results](#run-1-results)
-- [Quick start](#quick-start)
-- [Data](#data)
-- [Training](#training)
-- [Testing](#testing)
+- [Initial evaluation](#initial-evaluation)
+- [Planned interface](#planned-interface)
+- [Data and code availability](#data-and-code-availability)
 - [Access tiers](#access-tiers)
 - [Structural limits](#structural-limits)
-- [Project layout](#project-layout)
+- [Repository layout](#repository-layout)
 - [Citation](#citation)
 - [License](#license)
 
 ---
 
-## Why a synthetic benchmark
+## Why a simulated environment
 
 Target discovery has no clean held-out set.
-Every published target is in every model's training data, and every real cohort carries a data-use agreement that forbids the open redistribution a benchmark needs.
-DrugTargetBench resolves both by generating the ground truth.
+Published targets appear in model training data, and real cohorts carry data-use agreements that forbid the open redistribution a benchmark needs.
+More fundamentally, a real biobank cannot say which of its correlations are causal, so it cannot grade a causal claim.
 
-Each world is drawn fresh from a structural causal model, so the driver identities, weights, trap composition, and archetype are sampled per instance.
-Knowing the design reveals nothing about any instance — which is what makes the code safe to publish while the answer keys stay sealed.
-Because the generator is the ground truth, an intervention is a real counterfactual: clamping a molecule re-runs every downstream structural equation rather than returning a stored lookup.
+DrugTargetBench generates the ground truth instead.
+Each world is drawn fresh from a structural causal model, so driver identities, weights, trap composition and archetype are sampled per instance.
+Knowing the design reveals nothing about any instance, which is what makes the design safe to describe openly while the answer keys stay sealed.
+Because the generator *is* the ground truth, an intervention is a real counterfactual: clamping a molecule re-runs every downstream structural equation rather than returning a stored lookup.
 
 ---
 
@@ -113,7 +143,7 @@ The agent reads one; the scorer and the oracle read the other.
 | `sealed/` | ~1 MB | no | organizer and scorer only |
 
 Release data is disposable; sealed data is not.
-An agent-visible episode is five stages:
+An episode is five stages:
 
 ```
 Biobank  →  Phenotype  →  Causal targets  →  Experiments  →  Submission
@@ -162,11 +192,12 @@ The latent disease state is a weighted sum over hidden driver proteins, covariat
 L_i = z[ Σ_{j∈D} w_j P_ij  +  γᵀ C_i  +  δ G_i,direct  +  ε_i ]
 ```
 
-The identity and the number of causal drivers are both hidden.
+The identity and the number of causal drivers are both hidden from the agent.
 `w_late` differs from `w` for one driver per world, which is what lets an effect be near-invisible at visit 1 and substantial by visit 2.
 
-The agent's side of the same loop is a budgeted policy: it samples an action from `a_t ~ π(a | s_t, B_t)` and the budget decrements by that action's cost, `B_{t+1} = B_t - c(a_t)`.
-Analysis of already-held data is free; laboratory intervention is not.
+The agent's side of the same loop is a budgeted policy: it samples an action from `a_t ~ π(a | s_t, B_t)` and the budget decrements by that action's cost, `B_{t+1} = B_t − c(a_t)`.
+Analysis of already-held data is free, because a regression over data the cohort already holds is compute rather than a purchase.
+Only laboratory work is priced.
 
 ---
 
@@ -232,20 +263,21 @@ Each world carries a subset, recorded in the sealed manifest.
 | T6 | Benign remodeling | Real structural change, athlete's heart, no outcome consequence. |
 | T7 | Instrument pleiotropy | The instrument violates the exclusion restriction. |
 | T8 | Surrogate-outcome discordance | Improves the imaging surrogate while worsening survival. |
-| T9 | Assay unit mixing | Measurement artifact from mixed units, `--messy` only. |
+| T9 | Assay unit mixing | Measurement artifact from mixed units, messy presentation only. |
 | A9 | Slow effect | The causal member of the pair only expresses by visit 2. |
 
-T4 and A9 are unresolvable from observational data by construction; spending intervention budget is the only way through them.
+T4 and A9 are unresolvable from observational data by construction, so spending intervention budget is the only way through them.
 T5 and T6 plant no protein and so cannot be rejected, which caps the discrimination denominator.
 
-Two difficulty tiers (standard and `--hard`: nonlinear saturating biology, gene–gene synergy, weak instruments, polygenic background), an optional `--messy` UK Biobank-style presentation, and `--null-world` instances where the correct answer is "nothing here" supply the rest of the structural variation.
+Two difficulty tiers — standard, and a hard tier with nonlinear saturating biology, gene–gene synergy, weak instruments and polygenic background — plus an optional messy UK Biobank-style presentation and null-world instances where the correct answer is "nothing here" supply the rest of the structural variation.
+Panel worlds are stratified across those conditions, so results should be read by tier rather than pooled.
 
 ---
 
 ## The task
 
 The agent-facing brief is [docs/TASK.md](docs/TASK.md).
-In short, it receives:
+An agent receives:
 
 | File | Contents |
 |---|---|
@@ -256,22 +288,27 @@ In short, it receives:
 | `covariates.parquet` | age, sex, BMI, smoking, exercise, centre, `imaged` flag — under UK Biobank field IDs |
 | `data_dictionary.tsv` | field ID → description, plus documented negative sentinel codes |
 | `ehr_diagnoses.parquet`, `ehr_medications.parquet` | ICD-10 diagnoses with dates, ATC medications |
-| `imaging/SUBJ_XXXXX.npz` | raw short-axis cine-MRI under `cine`, shape (slices, frames, H, W) uint8, plus native T1 maps under `t1map` |
+| `imaging/SUBJ_XXXXX.npz` | raw short-axis cine-MRI under `cine`, plus native T1 maps under `t1map` |
 | `targetability.parquet` | per-molecule constraint, localisation, binding pocket, paralog redundancy, tissue specificity |
-| `oracle_client.py` | 5 virtual knockdown experiments, enforced server-side |
+| `oracle_client.py` | virtual knockdown experiments, budget enforced server-side |
 
-And it returns a `submission.json` with `drivers` (ranked, each with `evidence`, `direction`, and `outcome_alignment`), optional `rejected_decoys` (each with one of five named mechanisms), optional `abstentions` (sets of molecules judged unidentifiable), and an optional `phenotype_file`.
+It returns a `submission.json` with `drivers` (ranked, each carrying `evidence`, `direction` and `outcome_alignment`), optional `rejected_decoys` (each with one of five named mechanisms), optional `abstentions` (sets of molecules judged unidentifiable), and an optional `phenotype_file`.
 
 Two properties of the task are load-bearing.
-**There is no phenotype column** — how you define cardiac severity, from pixels or diagnoses or anything else, is part of the problem.
-The headroom is measurable: averaging the myocardium over a native T1 map recovers the latent state at r = 0.57, while reading its spatial arrangement reaches 0.80, and phenotype credit is scored as the fraction of that gap the agent's own code closes.
-**Any method is allowed** — scoring never inspects how a claim was reached, only the claim, its verification, and its calibration.
+
+**There is no phenotype column.**
+How cardiac severity is defined — from pixels, from diagnoses, from anything — is part of the task.
+The headroom is measurable: averaging the myocardium over a native T1 map recovers the latent state at r = 0.57, while reading its spatial arrangement reaches 0.80, and phenotype credit is the fraction of that gap the agent's own code closes.
+
+**Any method is allowed.**
+Scoring never inspects how a claim was reached, only the claim, its verification and its calibration.
 
 ---
 
 ## Scoring
 
-Rubric v0.9, 100 points, in [docs/EVALUATION.md](docs/EVALUATION.md).
+Rubric v0.9, 100 points before the asymmetric penalty.
+Full contract in [docs/EVALUATION.md](docs/EVALUATION.md).
 
 | Component | Points | Form |
 |---|---|---|
@@ -285,17 +322,17 @@ Rubric v0.9, 100 points, in [docs/EVALUATION.md](docs/EVALUATION.md).
 Recall × precision throughout means a wrong claim dilutes credit rather than being free.
 Causal confidence orders the three honest strategies: a real, audited experiment on the true causal member earns full credit, abstention on the complete pair earns partial credit, and an unsupported confident pick earns nothing.
 Abstention credit carries the same precision term over every entry submitted, so reaching a pair by enumerating candidates is worth the corresponding fraction and nothing more.
-Effect size, allele frequency, targetability rank, rationale length, and free-text confidence add no points.
+Effect size, allele frequency, targetability rank, rationale length and free-text confidence add no points.
 
 Scores are not comparable across rubric versions, and every score records its `rubric_version`.
-Rubric v0.9 is the scorer that produced the results below; presenting it as the validated headline rubric is a separate open gate.
+Rubric v0.9 is the scorer that produced the results below.
 
 ---
 
-## Run-1 results
+## Initial evaluation
 
-9 models × 20 worlds × 3 budget regimes × 1 replicate = 540 episodes, rubric v0.9, panel `cardioseek-v2-20260902`, provenance commit `85c1ab70`.
-Scores are means over 60 episodes per arm, out of a measured ceiling of **85.5** set by an omniscient reference policy — not an implied 100.
+Nine language-model agents, the frozen version 1 panel of 20 worlds, three budget regimes, one run per condition: 540 episodes.
+Component means are over the 60 episodes in each arm, on the rubric's 0–100 scale.
 
 | Model | Overall | SD | Best | Target /30 | Direction /20 | Phenotype /10 | Turns | USD/episode |
 |---|---|---|---|---|---|---|---|---|
@@ -311,29 +348,36 @@ Scores are means over 60 episodes per arm, out of a measured ceiling of **85.5**
 
 API arms are billed cost divided over 60 episodes.
 Self-hosted arms are GPU-hours × 2.50 USD/hour divided over 60 episodes, an upper bound because GPU-hours charge server residency rather than time under load.
-Interactive leaderboard, cost frontier, and rendered disease states: **[drugtargetbench.vercel.app](https://drugtargetbench.vercel.app)**.
+Self-hosted arms were served under vLLM 0.10.2 on H100 80GB.
+Interactive leaderboard and cost frontier: **[drugtargetbench.vercel.app](https://drugtargetbench.vercel.app)**.
 
-### Reading the table
+### Headline findings
 
-The spread is wide and the ceiling is far away.
-Opus 5's best single episode, 86.64, exceeds the reference ceiling of 85.5, while its mean is 39.98 — the variance across worlds is larger than the gap between the top two models.
-Phenotype construction is where the field collapses: 416 of 540 episodes earned zero credit on a 10-point component, and only Opus 5 cleared 7 of 10.
-Haiku 4.5 is the cheapest per point at 0.256 USD/episode for 12.92 points.
+Six episodes of 540 (1.1%) exceeded 80 points and recovered the complete planted target set, and all six fell in two worlds.
+Phenotype construction earned no credit in 77.0% of episodes; only Opus 5 averaged above 7 of the 10 available points.
+Agents purchased experiments in 143 of 360 eligible episodes, and in 41 of those purchasing episodes the subsequent code contained no detected reference to the returned results.
+Source-linked traces separate candidate selection from therapeutic justification: some submissions incorporated the perturbation effects they had paid for, while others hard-coded outcome-benefit labels despite recovering the target set exactly.
+
+For calibration, a reference policy handed the sealed truth measured 85.5 of 100 on this panel.
 
 ### Caveats that travel with these numbers
 
-Single replicate, so there is no within-cell variance.
+One run per condition, so there is no within-cell variance.
 GLM-4-32B and Qwen3-8B ran an 8,000-token output budget against the protocol's 32,000 and are not a like-for-like comparison.
 gpt-oss-20b is native MXFP4, so quantisation is a confound.
 Devstral-Small reached the turn limit in 53 of 60 episodes.
 Participant counts vary by world; 54,000 is the largest.
+The annotation fields behind the trace findings are model-coded without a human agreement check, so they are coded rather than validated.
 
 ---
 
-## Quick start
+## Planned interface
 
-The harness resolves world data itself — it checks the local cache, then the pinned immutable asset repository, and materialises everything a trial needs before the agent starts.
-You do not identify files, move images, construct worlds, or run preprocessing.
+> [!WARNING]
+> None of this runs yet. The dataset identifier and asset repository are published with the release.
+
+The harness resolves world data itself — local cache, then a pinned immutable asset repository — and materialises everything a trial needs before the agent starts.
+No manual file identification, image moving, world construction or preprocessing.
 
 ```bash
 uv tool install harbor
@@ -367,49 +411,37 @@ The phantom imaging backend needs nothing at all.
 A full sweep materialises each of the 20 worlds once, not once per task: the three regime tasks for a world share one immutable payload and one build cache.
 Budget disk for the unique 345 GB plus container overhead, not for the 1.03 TB you get by summing tasks independently.
 
-> The Harbor dataset id and the asset repository are published with the release.
-> Until then the commands above are the intended interface, not a live one.
-
 ---
 
-## Data
+## Data and code availability
+
+Nothing in this table is released yet.
+This section is the index of what is coming and is updated as each artifact lands.
 
 | Artifact | Status |
 |---|---|
-| World panel `cardioseek-v2-20260902` (20 worlds, 345 GB) | pending |
-| Run-1 episode table (540 rows × 65 columns) | pending |
-| Run-1 transcripts (576 `transcript.json`, 440 `submission.json`) | pending |
-| Hugging Face dataset | pending |
-| Paper | pending |
+| Generator, oracle, scorer, harness | not released |
+| Frozen version 1 world panel (20 worlds, 345 GB) | not released |
+| Episode table for the 540-episode evaluation | not released |
+| Agent transcripts and submissions | not released |
+| Hugging Face dataset | not released |
+| Paper | not released |
 
-Sealed directories — `manifest.json`, `latent_L.npy`, `eval_mask.npy`, `phenotype_baseline.json` — are the answer key and are never part of a release bundle.
-
----
-
-## Training
-
-`training/` is reserved for the reinforcement-learning and expert-iteration configs that turn the generator into a practice environment: unlimited world generation with dense per-behaviour feedback, single-turn bandit and multi-turn rollout tiers, vLLM serving, and GRPO.
-It is empty in this release.
-
----
-
-## Testing
-
-`testing/` is reserved for the evaluation-side artifacts: the frozen panel manifest, the golden rubric test matrix, and the reproduction scripts for the run-1 table.
-It is empty in this release.
+Sealed directories are the answer key and are never part of any release bundle.
 
 ---
 
 ## Access tiers
 
-1. **Fully synthetic (this repository).** No participant data, no data-use agreement, no PII; usable by anyone, anywhere. Structural randomization is why openness is safe — knowing the design never reveals an instance.
-2. **Calibrated synthetic.** A `mesa-topmed` profile anchors the synthetic world to aggregate MESA/TOPMed cohort statistics. Public-code compatible, with no participant rows or identifiers in the repository. Check the applicable study acknowledgement and derived-result disclosure requirements before publishing a calibration file.
-3. **Planted truth in real data (design).** Synthetic signal on real cohort backgrounds such as TOPMed or MESA, run only inside data-use-agreement-compliant environments with local or open-weights agents, and never redistributed.
+1. **Fully synthetic.** No participant data, no data-use agreement, no personally identifiable information; usable by anyone, anywhere. Structural randomization is why openness is safe — knowing the design never reveals an instance.
+2. **Calibrated synthetic.** A `mesa-topmed` profile anchors the synthetic world to aggregate MESA/TOPMed cohort statistics. Public-code compatible, with no participant rows or identifiers. Check the applicable study acknowledgement and derived-result disclosure requirements before publishing a calibration file.
+3. **Planted truth in real data (design only).** Synthetic signal on real cohort backgrounds such as TOPMed or MESA, run only inside data-use-agreement-compliant environments with local or open-weights agents, and never redistributed.
 
-**Imaging license.** Real-anatomy images derive from ACDC and this repository distributes no ACDC derivatives.
+**Imaging license.**
+Real-anatomy images derive from ACDC and this repository distributes no ACDC data or derivatives.
 Users download ACDC themselves under free registration and render locally.
 
-A governance audit runs beside the oracle audit: every knockdown request and every piece of agent-side evidence is checked against a data-use policy covering individual-level egress, cross-cohort joins, re-identification probing, and out-of-scope access, and recorded outside the agent's working directory.
+A governance audit runs beside the oracle audit: every knockdown request and every piece of agent-side evidence is checked against a data-use policy covering individual-level egress, cross-cohort joins, re-identification probing and out-of-scope access, and recorded outside the agent's working directory.
 In v0.9 this is logged, not scored.
 
 ---
@@ -419,15 +451,15 @@ In v0.9 this is logged, not scored.
 Stated plainly, because they bound what a score here means.
 
 - *cis* fraction is 1.0 against roughly 0.297 in real data, so Mendelian randomization is easier here than in reality.
-- Plain correlation still ranks a true driver first in 7 of 10 panel worlds. The hard and messy tiers are genuinely hard and the standard tier is the easy end, so results should be reported by tier.
 - Molecules carry no biological identity, so no prior knowledge of real biology transfers.
-- Missingness is informative through bounded severity, site, participation, and assay-level intercept terms.
+- Missingness is informative through bounded severity, site, participation and assay-level intercept terms.
 - Individuals are sampled independently, so there is no relatedness structure.
-- The rendered cine-MRI on the public site comes from development worlds, not the frozen evaluation panel, whose imaging is not redistributed.
+- Difficulty varies substantially by tier, so pooled scores across a mixed panel understate the spread.
+- The cine-MRI shown above was rendered from development worlds, not from the frozen evaluation panel, whose imaging is not redistributed.
 
 ---
 
-## Project layout
+## Repository layout
 
 ```
 DrugTargetBench/
@@ -438,37 +470,25 @@ DrugTargetBench/
 │   ├── ARCHITECTURE.md      # module map, release/sealed boundary, isolation
 │   ├── TASK.md              # the agent-facing challenge statement
 │   ├── EVALUATION.md        # rubric v0.9 components and scoring form
-│   └── figures/
-├── training/                # RL and expert-iteration configs (empty)
-└── testing/                 # panel manifest, golden rubric matrix (empty)
+│   └── figures/             # rendered cine-MRI loops
+├── training/                # empty — reserved, see training/README.md
+└── testing/                 # empty — reserved, see testing/README.md
 ```
 
-The generator, oracle, scorer, and harness are published with the release.
-Their intended layout:
-
-```
-generator/    genotypes.py  scm.py  ehr.py  imaging.py  acdc_warp.py  generate.py
-scoring/      score.py                     active rubric v0.9 scorer
-oracle/       oracle_server.py  oracle_api.py  oracle_client.py  governance_policy.py
-actions/      registry.json  library.py  meter.py  world.py
-policies/     library.py                  reference policies, random through omniscient
-harness/      run_agent.py  run_study.py  build_panel.py  prepare_arena.py
-experiments/  run_policies.py  run_agents.py  export_csv.py  integrity_audit.py
-realism/      realism_report.py  mesa_calibration_report.py
-```
+That is the whole repository.
+The generator, oracle, scorer and harness described in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) are **not** part of this release; that document describes the environment's design, not this repository's contents.
 
 ---
 
 ## Citation
 
 ```bibtex
-@article{drugtargetbench2026,
-  title   = {{DrugTargetBench}: A contamination-resistant, agentic benchmark for
-             autonomous therapeutic target discovery},
-  author  = {TBD},
-  journal = {arXiv preprint},
-  year    = {2026},
-  url     = {https://arxiv.org/abs/XXXX.XXXXX}
+@article{margolis2026drugtargetbench,
+  title   = {{DrugTargetBench}: An Environment for Therapeutic Target Discovery},
+  author  = {Margolis, Samuel and Schmiedmayer, Paul and Huang, Alan and
+             Chen, Ethan and Bhattacharjee, Ishan and Shah, Atman and
+             Cao, Fang and Ashley, Euan and Gomes, Bruna},
+  year    = {2026}
 }
 ```
 
@@ -484,6 +504,6 @@ This repository distributes no ACDC data or derivatives.
 ---
 
 <div align="center">
-<i>DrugTargetBench is a research benchmark on synthetic data.<br>
+<i>DrugTargetBench is a research environment built on simulated data.<br>
 No result here is evidence about a real therapeutic target.</i>
 </div>

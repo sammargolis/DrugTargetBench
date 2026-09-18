@@ -1,7 +1,9 @@
 # Challenge statement (agent-facing)
 
-This is the brief an agent receives verbatim at the start of an episode.
-The intervention budget quoted below is the `full_program` regime; the `observational` regime grants no calls, and the harness substitutes the regime's own budget before the brief is handed over.
+This is the brief an agent receives verbatim at the start of an episode, reproduced as-is.
+The intervention budget quoted below is the largest regime; other regimes grant fewer calls, and the harness substitutes the regime's own budget before the brief is handed over.
+
+Two files reach the agent that the brief does not enumerate: the `npz` archives also carry native T1 maps under `t1map`, and `release/` also carries `targetability.parquet` with per-molecule constraint, localisation, binding pocket, paralog redundancy and tissue specificity.
 
 ---
 
@@ -17,9 +19,8 @@ You are given individual-level data for a synthetic adult population:
 | `data_dictionary.tsv` | field ID to description mapping for the covariate columns, plus any documented negative sentinel codes |
 | `ehr_diagnoses.parquet` | ICD-10 diagnosis records with dates |
 | `ehr_medications.parquet` | ATC medication records |
-| `imaging/SUBJ_XXXXX.npz` | raw short-axis cine-MRI, key `cine`: (slices, frames, H, W) uint8, and native T1 maps under `t1map` — imaging sub-cohort only |
-| `targetability.parquet` | per-molecule constraint, localisation, binding pocket, paralog redundancy, tissue specificity |
-| `oracle_client.py` | virtual knockdown experiments (see below) |
+| `imaging/SUBJ_XXXXX.npz` | raw short-axis cine-MRI, key `cine`: (slices, frames, H, W) uint8 — imaging sub-cohort only |
+| `oracle_client.py` | 5 virtual knockdown experiments (see below) |
 
 **The knockdown oracle.**
 `oracle_client.py` runs a real intervention on the underlying system, not a lookup:
