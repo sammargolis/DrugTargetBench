@@ -32,43 +32,6 @@ Samuel Margolis<sup>1,2</sup>, Paul Schmiedmayer<sup>1</sup>, Alan Huang<sup>1,2
 
 ---
 
-## Abstract
-
-Therapeutic target discovery requires choosing disease measurements, identifying causal molecules and deciding whether their perturbation would improve outcomes.
-Real biobanks provide only partial ground truth for evaluating this sequence of decisions.
-We introduce DrugTargetBench, an environment of simulated cardiac biobank worlds governed by sealed structural causal models.
-Agents receive multimodal population data, construct a phenotype, choose analyses, nominate an unknown number of targets and purchase simulated experiments under fixed budgets.
-Their causal and therapeutic claims are scored against known drivers, misleading signals and intervention responses.
-In an initial evaluation of nine language-model agents across the frozen version 1 panel of 20 worlds and three budgets (540 episodes; one run per condition), six episodes (1.1%) exceeded 80 of 100 points and recovered the complete planted target set, all in two worlds.
-Phenotype construction earned no credit in 77.0% of episodes.
-Agents purchased experiments in 143 of 360 eligible episodes; subsequent code contained no detected reference to returned results in 41 purchasing episodes.
-Source-linked traces distinguished candidate selection from therapeutic justification: some submissions incorporated perturbation effects, whereas others hard-coded outcome-benefit labels despite exact target recovery.
-These initial results identify concrete targets for improvement: producing usable phenotypes, selecting informative experiments and connecting their results to final claims.
-DrugTargetBench makes these linked research decisions testable against hidden causal and interventional truth, providing an environment for controlled workflow comparisons and future agent training.
-
----
-
-## What this repository contains
-
-> [!IMPORTANT]
-> **This release is documentation only.**
-> The generator, oracle, scorer and harness are **not** published here.
-> Neither is the world panel, the episode data, or the run-1 traces.
-> Nothing in this repository can be executed, and none of the commands shown below will run yet.
-
-| | in this release |
-|---|---|
-| README, architecture, task statement, scoring contract | yes |
-| Rendered cine-MRI figures | yes |
-| Generator, oracle, scorer, harness | no |
-| World panel and world data | no |
-| Episode table and agent traces | no |
-| `training/`, `testing/` | present but empty |
-
-See [Data and code availability](#data-and-code-availability) for what is planned and where it will land.
-
----
-
 ## Table of Contents
 
 - [Why a simulated environment](#why-a-simulated-environment)
@@ -351,30 +314,10 @@ Self-hosted arms are GPU-hours × 2.50 USD/hour divided over 60 episodes, an upp
 Self-hosted arms were served under vLLM 0.10.2 on H100 80GB.
 Interactive leaderboard and cost frontier: **[drugtargetbench.vercel.app](https://drugtargetbench.vercel.app)**.
 
-### Headline findings
-
-Six episodes of 540 (1.1%) exceeded 80 points and recovered the complete planted target set, and all six fell in two worlds.
-Phenotype construction earned no credit in 77.0% of episodes; only Opus 5 averaged above 7 of the 10 available points.
-Agents purchased experiments in 143 of 360 eligible episodes, and in 41 of those purchasing episodes the subsequent code contained no detected reference to the returned results.
-Source-linked traces separate candidate selection from therapeutic justification: some submissions incorporated the perturbation effects they had paid for, while others hard-coded outcome-benefit labels despite recovering the target set exactly.
-
-For calibration, a reference policy handed the sealed truth measured 85.5 of 100 on this panel.
-
-### Caveats that travel with these numbers
-
-One run per condition, so there is no within-cell variance.
-GLM-4-32B and Qwen3-8B ran an 8,000-token output budget against the protocol's 32,000 and are not a like-for-like comparison.
-gpt-oss-20b is native MXFP4, so quantisation is a confound.
-Devstral-Small reached the turn limit in 53 of 60 episodes.
-Participant counts vary by world; 54,000 is the largest.
-The annotation fields behind the trace findings are model-coded without a human agreement check, so they are coded rather than validated.
-
 ---
 
 ## Planned interface
 
-> [!WARNING]
-> None of this runs yet. The dataset identifier and asset repository are published with the release.
 
 The harness resolves world data itself — local cache, then a pinned immutable asset repository — and materialises everything a trial needs before the agent starts.
 No manual file identification, image moving, world construction or preprocessing.
@@ -446,19 +389,6 @@ In v0.9 this is logged, not scored.
 
 ---
 
-## Structural limits
-
-Stated plainly, because they bound what a score here means.
-
-- *cis* fraction is 1.0 against roughly 0.297 in real data, so Mendelian randomization is easier here than in reality.
-- Molecules carry no biological identity, so no prior knowledge of real biology transfers.
-- Missingness is informative through bounded severity, site, participation and assay-level intercept terms.
-- Individuals are sampled independently, so there is no relatedness structure.
-- Difficulty varies substantially by tier, so pooled scores across a mixed panel understate the spread.
-- The cine-MRI shown above was rendered from development worlds, not from the frozen evaluation panel, whose imaging is not redistributed.
-
----
-
 ## Repository layout
 
 ```
@@ -483,7 +413,7 @@ The generator, oracle, scorer and harness described in [docs/ARCHITECTURE.md](do
 ## Citation
 
 ```bibtex
-@article{margolis2026drugtargetbench,
+@article{2026drugtargetbench,
   title   = {{DrugTargetBench}: An Environment for Therapeutic Target Discovery},
   author  = {Margolis, Samuel and Schmiedmayer, Paul and Huang, Alan and
              Chen, Ethan and Bhattacharjee, Ishan and Shah, Atman and
