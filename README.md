@@ -36,7 +36,6 @@ Samuel Margolis<sup>1,2</sup>, Paul Schmiedmayer<sup>1</sup>, Alan Huang<sup>1,2
 ## Table of Contents
 
 - [Run it](#run-it)
-- [Links](#links)
 - [Why a simulated environment](#why-a-simulated-environment)
 - [Architecture](#architecture)
 - [The world, layer by layer](#the-world-layer-by-layer)
@@ -102,21 +101,6 @@ Each trial writes `reward.txt` and a `score.json` carrying the full component br
 > No full 17 GB trial has run end to end yet.
 > Every component is verified — the pinned revision resolves, checksums match, the experiment service loads, the verifier scores 43.33 to reward 0.4333, and all 60 tasks download clean from the registry — but bulk materialization inside a Harbor-managed build has not been exercised.
 > Run one complete task before pointing a sweep at it.
-
----
-
-## Links
-
-| | |
-|---|---|
-| Harbor dataset | <https://hub.harborframework.com/datasets/drugtargetbench/drugtargetbench> |
-| Example task page | <https://hub.harborframework.com/tasks/drugtargetbench/hard-02-full-program> |
-| Hugging Face assets | <https://huggingface.co/datasets/sammargolis/drugtargetbench-assets> |
-| Container image | <https://github.com/users/sammargolis/packages/container/package/drugtargetbench-base> |
-| Source | <https://github.com/sammargolis/cardiobench/tree/v2RWEBench/harbor> |
-
-Sealed directories are the answer key and are not part of any release bundle.
-
 ---
 
 ## Why a simulated environment
