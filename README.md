@@ -97,15 +97,11 @@ Agents available: `claude-code`, `codex`, `aider`, `swe-agent`, `terminus`, `ora
 Results land in `jobs/`.
 Each trial writes `reward.txt` and a `score.json` carrying the full component breakdown: target identification, causal confidence, discrimination, direction of effect, phenotype construction, safety penalty.
 
-> [!NOTE]
-> No full 17 GB trial has run end to end yet.
-> Every component is verified — the pinned revision resolves, checksums match, the experiment service loads, the verifier scores 43.33 to reward 0.4333, and all 60 tasks download clean from the registry — but bulk materialization inside a Harbor-managed build has not been exercised.
-> Run one complete task before pointing a sweep at it.
 ---
 
 ## Why a simulated environment
 
-Target discovery has no clean held-out set.
+Target discovery has no clean held out set.
 Published targets appear in model training data, and real cohorts carry data-use agreements that forbid the open redistribution a benchmark needs.
 More fundamentally, a real biobank cannot say which of its correlations are causal, so it cannot grade a causal claim.
 
