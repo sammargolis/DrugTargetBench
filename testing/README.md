@@ -1,6 +1,6 @@
 # Testing
 
-Empty. Nothing in this directory is released yet.
+Empty.
 
 Reserved for the evaluation-side artifacts needed to reproduce a published table rather than to run a new sweep.
 
@@ -13,4 +13,4 @@ Planned contents:
 | `reproduce/` | scripts that rebuild the published score table from the episode logs |
 | `integrity/` | truth isolation, score determinism and oracle parity checks |
 
-These land with the environment release, not before.
+These land here as they are published; the runnable environment itself ships through Harbor (see the root README).

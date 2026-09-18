@@ -7,7 +7,8 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
 [![arXiv](https://img.shields.io/badge/arXiv-pending-b31b1b.svg)](#citation)
-[![Hugging Face](https://img.shields.io/badge/%F0%9F%A4%97%20dataset-pending-orange)](#data-and-code-availability)
+[![Harbor](https://img.shields.io/badge/harbor-drugtargetbench%40v1.0-2b7489.svg)](https://hub.harborframework.com/datasets/drugtargetbench/drugtargetbench)
+[![Hugging Face](https://img.shields.io/badge/%F0%9F%A4%97%20assets-drugtargetbench--assets-orange)](https://huggingface.co/datasets/sammargolis/drugtargetbench-assets)
 [![Website](https://img.shields.io/badge/site-drugtargetbench.vercel.app-111111.svg)](https://drugtargetbench.vercel.app)
 
 Samuel Margolis<sup>1,2</sup>, Paul Schmiedmayer<sup>1</sup>, Alan Huang<sup>1,2</sup>, Ethan Chen<sup>3</sup>, Ishan Bhattacharjee<sup>1</sup>, Atman Shah<sup>3</sup>, Fang Cao<sup>1,2</sup>, Euan Ashley<sup>1,2</sup>, Bruna Gomes<sup>†1,2</sup>
@@ -34,6 +35,8 @@ Samuel Margolis<sup>1,2</sup>, Paul Schmiedmayer<sup>1</sup>, Alan Huang<sup>1,2
 
 ## Table of Contents
 
+- [Run it](#run-it)
+- [Links](#links)
 - [Why a simulated environment](#why-a-simulated-environment)
 - [Architecture](#architecture)
 - [The world, layer by layer](#the-world-layer-by-layer)
@@ -43,13 +46,76 @@ Samuel Margolis<sup>1,2</sup>, Paul Schmiedmayer<sup>1</sup>, Alan Huang<sup>1,2
 - [The task](#the-task)
 - [Scoring](#scoring)
 - [Initial evaluation](#initial-evaluation)
-- [Planned interface](#planned-interface)
-- [Data and code availability](#data-and-code-availability)
 - [Access tiers](#access-tiers)
-- [Structural limits](#structural-limits)
 - [Repository layout](#repository-layout)
 - [Citation](#citation)
 - [License](#license)
+
+---
+
+## Run it
+
+```bash
+uv tool install harbor
+
+harbor run \
+  -d drugtargetbench/drugtargetbench@v1.0 \
+  -a claude-code \
+  -m claude-opus-5
+```
+
+That is everything.
+Harbor pulls the task, pulls the image, downloads and checksum-verifies the world data, starts the experiment service, runs your agent, then scores it in a separate verifier container.
+
+### Useful flags
+
+```bash
+# one task instead of all 60
+harbor run -d drugtargetbench/drugtargetbench@v1.0 -a claude-code -m <model> --limit 1
+
+# a single specific task
+harbor run -p drugtargetbench/hard-02-full-program -a claude-code -m <model>
+
+# concurrency (default 4) — each concurrent trial needs ~17 GB of disk
+harbor run -d drugtargetbench/drugtargetbench@v1.0 -a claude-code -m <model> -n 2
+
+# 3 attempts per task
+harbor run -d drugtargetbench/drugtargetbench@v1.0 -a claude-code -m <model> -k 3
+```
+
+Agents available: `claude-code`, `codex`, `aider`, `swe-agent`, `terminus`, `oracle`, and others — `harbor agent list`.
+
+### What to expect
+
+| | |
+|---|---|
+| Tasks | 60 — 20 worlds × 3 budget regimes |
+| First run per world | downloads ~17 GB |
+| Full sweep | ~345 GB unique, each world once rather than once per task |
+| Disk needed | 345 GB plus Docker overhead |
+| Scoring | rubric v0.9, 0–100, normalised to 0–1 for Harbor |
+
+Results land in `jobs/`.
+Each trial writes `reward.txt` and a `score.json` carrying the full component breakdown: target identification, causal confidence, discrimination, direction of effect, phenotype construction, safety penalty.
+
+> [!NOTE]
+> No full 17 GB trial has run end to end yet.
+> Every component is verified — the pinned revision resolves, checksums match, the experiment service loads, the verifier scores 43.33 to reward 0.4333, and all 60 tasks download clean from the registry — but bulk materialization inside a Harbor-managed build has not been exercised.
+> Run one complete task before pointing a sweep at it.
+
+---
+
+## Links
+
+| | |
+|---|---|
+| Harbor dataset | <https://hub.harborframework.com/datasets/drugtargetbench/drugtargetbench> |
+| Example task page | <https://hub.harborframework.com/tasks/drugtargetbench/hard-02-full-program> |
+| Hugging Face assets | <https://huggingface.co/datasets/sammargolis/drugtargetbench-assets> |
+| Container image | <https://github.com/users/sammargolis/packages/container/package/drugtargetbench-base> |
+| Source | <https://github.com/sammargolis/cardiobench/tree/v2RWEBench/harbor> |
+
+Sealed directories are the answer key and are not part of any release bundle.
 
 ---
 
@@ -240,7 +306,7 @@ Panel worlds are stratified across those conditions, so results should be read b
 ## The task
 
 The agent-facing brief is [docs/TASK.md](docs/TASK.md).
-An agent receives:
+A biobank of 54,000 synthetic participants lands in `/app/data`, with no phenotype column:
 
 | File | Contents |
 |---|---|
@@ -253,9 +319,18 @@ An agent receives:
 | `ehr_diagnoses.parquet`, `ehr_medications.parquet` | ICD-10 diagnoses with dates, ATC medications |
 | `imaging/SUBJ_XXXXX.npz` | raw short-axis cine-MRI under `cine`, plus native T1 maps under `t1map` |
 | `targetability.parquet` | per-molecule constraint, localisation, binding pocket, paralog redundancy, tissue specificity |
-| `oracle_client.py` | virtual knockdown experiments, budget enforced server-side |
 
-It returns a `submission.json` with `drivers` (ranked, each carrying `evidence`, `direction` and `outcome_alignment`), optional `rejected_decoys` (each with one of five named mechanisms), optional `abstentions` (sets of molecules judged unidentifiable), and an optional `phenotype_file`.
+The agent derives a cardiac phenotype from the imaging, identifies which proteins causally drive disease against the ten planted traps, and says which direction a drug should move each.
+It buys experiments within its budget through a metered, audit-logged service:
+
+```bash
+request-experiment --kind knockdown          --protein PROT_0123   # $400k
+request-experiment --kind cell_perturbation  --protein PROT_0123   # $150k
+request-experiment --balance
+```
+
+Output goes to `/app/results/submission.json` and `/app/results/phenotype.csv`.
+The submission carries `drivers` (ranked, each with `evidence`, `direction` and `outcome_alignment`), optional `rejected_decoys` (each with one of five named mechanisms), and optional `abstentions` (sets of molecules judged unidentifiable).
 
 Two properties of the task are load-bearing.
 
@@ -316,64 +391,6 @@ Interactive leaderboard and cost frontier: **[drugtargetbench.vercel.app](https:
 
 ---
 
-## Planned interface
-
-
-The harness resolves world data itself — local cache, then a pinned immutable asset repository — and materialises everything a trial needs before the agent starts.
-No manual file identification, image moving, world construction or preprocessing.
-
-```bash
-uv tool install harbor
-
-harbor run \
-  -d drugtargetbench/drugtargetbench@v1.0 \
-  -a <agent> \
-  -m <model>
-```
-
-**One-time prerequisite for the imaging.**
-The cine-MRI is warped from the ACDC dataset, which is registration-gated and cannot be redistributed.
-Register at no cost at <https://humanheart-project.creatis.insa-lyon.fr>, download the ACDC training set once, and point the harness at it:
-
-```bash
-export DTB_ACDC_ROOT=/path/to/authorized/ACDC/training
-```
-
-Everything else — proteomics, transcriptomics, metabolomics, genotypes, EHR, ECG, survival — is generated and downloads with no prerequisite.
-The phantom imaging backend needs nothing at all.
-
-| | |
-|---|---|
-| Tasks | 60 (20 worlds × 3 budget regimes) |
-| Unique world data | 345 GB |
-| Largest single task | 17.4 GB |
-| Downloads without ACDC | 72.5 GB |
-| Requires authorised ACDC | 272.8 GB |
-| Scoring | rubric v0.9 |
-
-A full sweep materialises each of the 20 worlds once, not once per task: the three regime tasks for a world share one immutable payload and one build cache.
-Budget disk for the unique 345 GB plus container overhead, not for the 1.03 TB you get by summing tasks independently.
-
----
-
-## Data and code availability
-
-Nothing in this table is released yet.
-This section is the index of what is coming and is updated as each artifact lands.
-
-| Artifact | Status |
-|---|---|
-| Generator, oracle, scorer, harness | not released |
-| Frozen version 1 world panel (20 worlds, 345 GB) | not released |
-| Episode table for the 540-episode evaluation | not released |
-| Agent transcripts and submissions | not released |
-| Hugging Face dataset | not released |
-| Paper | not released |
-
-Sealed directories are the answer key and are never part of any release bundle.
-
----
-
 ## Access tiers
 
 1. **Fully synthetic.** No participant data, no data-use agreement, no personally identifiable information; usable by anyone, anywhere. Structural randomization is why openness is safe — knowing the design never reveals an instance.
@@ -381,8 +398,8 @@ Sealed directories are the answer key and are never part of any release bundle.
 3. **Planted truth in real data (design only).** Synthetic signal on real cohort backgrounds such as TOPMed or MESA, run only inside data-use-agreement-compliant environments with local or open-weights agents, and never redistributed.
 
 **Imaging license.**
-Real-anatomy images derive from ACDC and this repository distributes no ACDC data or derivatives.
-Users download ACDC themselves under free registration and render locally.
+Real-anatomy images derive from ACDC, which is registration-gated.
+This repository distributes no ACDC data or derivatives; cite ACDC if you use the imaging.
 
 A governance audit runs beside the oracle audit: every knockdown request and every piece of agent-side evidence is checked against a data-use policy covering individual-level egress, cross-cohort joins, re-identification probing and out-of-scope access, and recorded outside the agent's working directory.
 In v0.9 this is logged, not scored.
@@ -405,8 +422,8 @@ DrugTargetBench/
 └── testing/                 # empty — reserved, see testing/README.md
 ```
 
-That is the whole repository.
-The generator, oracle, scorer and harness described in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) are **not** part of this release; that document describes the environment's design, not this repository's contents.
+This repository is documentation.
+The generator, oracle, scorer and harness described in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) live in the [source tree](https://github.com/sammargolis/cardiobench/tree/v2RWEBench/harbor); you do not need them to run the benchmark, since Harbor pulls a prebuilt image.
 
 ---
 
@@ -419,6 +436,22 @@ The generator, oracle, scorer and harness described in [docs/ARCHITECTURE.md](do
              Chen, Ethan and Bhattacharjee, Ishan and Shah, Atman and
              Cao, Fang and Ashley, Euan and Gomes, Bruna},
   year    = {2026}
+}
+```
+
+If you use the imaging, also cite ACDC:
+
+```bibtex
+@article{bernard2018acdc,
+  title   = {Deep Learning Techniques for Automatic {MRI} Cardiac Multi-structures
+             Segmentation and Diagnosis: Is the Problem Solved?},
+  author  = {Bernard, Olivier and Lalande, Alain and Zotti, Clement and
+             Cervenansky, Frederick and others},
+  journal = {IEEE Transactions on Medical Imaging},
+  volume  = {37},
+  number  = {11},
+  pages   = {2514--2525},
+  year    = {2018}
 }
 ```
 

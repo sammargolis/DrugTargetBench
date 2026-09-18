@@ -3,10 +3,10 @@
 How a DrugTargetBench instance is built, what the agent can reach, and what stays sealed.
 The scoring contract is in [EVALUATION.md](EVALUATION.md) and the agent-facing brief is in [TASK.md](TASK.md).
 
-> [!IMPORTANT]
+> [!NOTE]
 > This document describes the design of the environment, not the contents of this repository.
-> The generator, oracle, scorer and harness are **not** published in this release.
-> Every path named below refers to the implementation as it will ship, not to a file you can open here.
+> Every path named below refers to the [source tree](https://github.com/sammargolis/cardiobench/tree/v2RWEBench/harbor), not to a file in this repository.
+> Running the benchmark does not require the source; Harbor pulls a prebuilt image.
 
 ## Loop
 
@@ -175,8 +175,6 @@ Neither file is ever read before the agent starts, so nothing the agent could pl
 In v0.9 this is logged, not scored: the scorer does not import the governance policy and never reads either file.
 
 ## Components
-
-None of these are in this release.
 
 | path | role |
 |---|---|
