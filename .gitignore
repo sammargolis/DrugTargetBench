@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+build/
+dist/
+
+# Environment
+.env
+.env.*
+
+# Benchmark data — never commit either half of an instance
+data/
+panels/
+results/
+release/
+sealed/
+*.parquet
+*.vcf.gz
+*.npz
+*.npy
+
+# Tooling
+.DS_Store
+.ipynb_checkpoints/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/

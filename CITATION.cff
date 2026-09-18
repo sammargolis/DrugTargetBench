@@ -1,0 +1,24 @@
+cff-version: 1.2.0
+message: If you use DrugTargetBench, please cite it as below.
+title: "DrugTargetBench: A contamination-resistant, agentic benchmark for autonomous therapeutic target discovery"
+abstract: >-
+  DrugTargetBench evaluates whether an AI agent can run an end-to-end
+  therapeutic target discovery program on a synthetic population with
+  genotypes, multi-omics, raw cine-MRI, EHR records and survival outcomes,
+  with no phenotype column and no answer key. Twenty procedurally generated
+  worlds carry ten planted trap mechanisms and a budgeted virtual knockdown
+  oracle that re-runs the underlying structural causal model.
+type: software
+license: MIT
+repository-code: "https://github.com/sammargolis/DrugTargetBench"
+url: "https://drugtargetbench.vercel.app"
+keywords:
+  - benchmark
+  - agentic AI
+  - causal inference
+  - Mendelian randomization
+  - target discovery
+  - cardiovascular
+authors:
+  - name: The DrugTargetBench Authors
+version: "0.9"
